@@ -1,4 +1,5 @@
 import os
+import re
 from dotenv import load_dotenv
 
 from flask import Flask, render_template, redirect, url_for, flash, abort
@@ -17,6 +18,7 @@ from functools import wraps
 load_dotenv()
 
 app = Flask(__name__)
+
 app.config['SECRET_KEY'] = os.getenv('FLASK_APP_SECRET_KEY')
 ckeditor = CKEditor(app)
 Bootstrap(app)
@@ -24,7 +26,13 @@ gravatar = Gravatar(app, size=100, rating='g', default='retro', force_default=Fa
 
 
 # CONNECT TO DB
-app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL')
+
+# https://help.heroku.com/ZKNTJQSK/why-is-sqlalchemy-1-4-x-not-connecting-to-heroku-postgres
+db_uri = os.getenv("DATABASE_URL")  # or other relevant config var
+if db_uri.startswith("postgres://"):
+    uri = db_uri.replace("postgres://", "postgresql://", 1)
+
+app.config['SQLALCHEMY_DATABASE_URI'] = db_uri
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
